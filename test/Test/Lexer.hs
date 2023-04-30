@@ -59,7 +59,8 @@ lexMixedString :: IO ()
 lexMixedString =
   scanMany "[MyString]"
     @?= Right
-      [ RangedToken {rtToken = TokOpenSquareBracket, rtRange = Range {start = AlexPn 0 1 1, stop = AlexPn 1 1 2}}
-      , RangedToken {rtToken = String "MyString", rtRange = Range {start = AlexPn 1 1 2, stop = AlexPn 9 1 10}}
-      , RangedToken {rtToken = TokCloseSquareBracket, rtRange = Range {start = AlexPn 9 1 10, stop = AlexPn 10 1 11}}
-      , RangedToken {rtToken = EOF, rtRange = Range {start = AlexPn 10 1 11, stop = AlexPn 10 1 11}}]
+      [ RangedToken{rtToken = TokOpenSquareBracket, rtRange = Range{start = AlexPn 0 1 1, stop = AlexPn 1 1 2}}
+      , RangedToken{rtToken = String "MyString", rtRange = Range{start = AlexPn 1 1 2, stop = AlexPn 9 1 10}}
+      , RangedToken{rtToken = TokCloseSquareBracket, rtRange = Range{start = AlexPn 9 1 10, stop = AlexPn 10 1 11}}
+      , RangedToken{rtToken = EOF, rtRange = Range{start = AlexPn 10 1 11, stop = AlexPn 10 1 11}}
+      ]

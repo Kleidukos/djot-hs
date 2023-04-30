@@ -8,13 +8,9 @@ license:         Apache-2.0
 license-file:    LICENSE
 author:          Hécate
 maintainer:      hecate+github@glitchbra.in
-
--- copyright:
 category:        Parsers
 build-type:      Simple
 extra-doc-files: CHANGELOG.md
-
--- extra-source-files:
 
 common extensions
   default-extensions:
@@ -37,7 +33,7 @@ common extensions
     UndecidableInstances
     ViewPatterns
 
-  default-language:   Haskell2010
+  default-language:   GHC2021
 
 common ghc-options
   ghc-options:
@@ -73,10 +69,10 @@ test-suite djot-hs-test
   import:         extensions
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
-
-  -- cabal-fmt: expand ./test/Djot
-  other-modules:
+  other-modules:  Test.Lexer
   main-is:        Main.hs
   build-depends:
-    , base     ^>=4.17.0.0
+    , base         ^>=4.17.0.0
     , djot-hs
+    , tasty
+    , tasty-hunit

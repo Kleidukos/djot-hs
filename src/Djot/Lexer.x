@@ -10,19 +10,21 @@ import Data.ByteString.Lazy (LazyByteString)
 %wrapper "monadUserState-bytestring"
 
 $whitechar = [\t\n\r\f\v\ ]
-$large = [A-Z \xc0-\xd6 \xd8-\xde]
-$small = [a-z \xdf-\xf6 \xf8-\xff \_]
+$large = [A-Z]
+$small = [a-z]
 $alpha = [$small $large]
 $digit = 0-9
 $special = [\(\)\[\]\`\{\}\=\#\>\.\+\*\-\:\^\|]
 
+@number = [$digit]+
+@text = [$alpha $digit]
 
 djot :-
 
-<0> $white+    { skip }
-<0> $digit     { mkL TokTypeInteger }
-<0> $alpha     { mkL TokTypeInteger }
-<0> $special   { mkL TokTypeSpecial }
+<0> $white+     { skip }
+<0> @number     { mkL TokTypeInteger }
+<0> $special    { mkL TokTypeSpecial }
+<0> $alpha+     { mkL TokTypeString }
 
 {
 data AlexUserState = AlexUserState
@@ -55,14 +57,14 @@ data Token
   = Digit !LazyByteString
   | String !LazyByteString 
   -- "Special"
-  | TokRightParen
-  | TokLeftParen
+  | TokOpenParen
+  | TokCloseParen
   | TokComma
   | TokSemicolon
-  | TokLeftSquareBracket
-  | TokRightSquareBracket
-  | TokLeftAccolade
-  | TokRightAccolade
+  | TokOpenSquareBracket
+  | TokCloseSquareBracket
+  | TokOpenAccolade
+  | TokCloseAccolade
   | TokBacktick
   | TokPipe
   | TokGreaterThan
@@ -78,8 +80,12 @@ data Token
  deriving stock (Eq, Show)
 
 mkL :: TokenType -> AlexInput -> Int64 -> Alex RangedToken
-mkL tokType (start, _, str, _) len =
-  refineTok tokType start str len 
+mkL tokenType (start, _, str, _) len =
+  case tokenType of
+    TokTypeString  -> pure RangedToken{rtToken = String str, rtRange = mkRange start str len}
+    TokTypeInteger -> pure RangedToken{rtToken = Digit str, rtRange = mkRange start str len}
+    TokTypeSpecial -> pure RangedToken{rtToken = mkTokSpecial (BS.head str), rtRange = mkRange start str len}
+    TokTypeEOF      -> alexEOF
 
 mkRange :: AlexPosn -> LazyByteString -> Int64 -> Range
 mkRange start str len = Range{start, stop}
@@ -87,35 +93,27 @@ mkRange start str len = Range{start, stop}
     stop :: AlexPosn
     stop = BS.foldl' alexMove start $ BS.take len str
 
-refineTok :: TokenType -> AlexPosn -> LazyByteString -> Int64 -> Alex RangedToken
-refineTok tokenType start str len =
-  case tokenType of
-    TokTypeString  -> pure RangedToken{rtToken = String str, rtRange = mkRange start str len}
-    TokTypeInteger -> pure RangedToken{rtToken = Digit str, rtRange = mkRange start str len}
-    TokTypeSpecial -> pure RangedToken{rtToken = mkTokSpecial str, rtRange = mkRange start str len}
-    TokTypeEOF      -> alexEOF
-
-mkTokSpecial :: LazyByteString -> Token
+mkTokSpecial :: Char -> Token
 mkTokSpecial = \case
-  ")" -> TokRightParen
-  "(" -> TokLeftParen
-  "," -> TokComma
-  ";" -> TokSemicolon
-  "[" -> TokRightSquareBracket
-  "]" -> TokLeftSquareBracket
-  "{" -> TokLeftAccolade
-  "}" -> TokRightAccolade
-  "`" -> TokBacktick
-  "|" -> TokPipe
-  ">" -> TokGreaterThan
-  "=" -> TokEqual
-  "#" -> TokHash
-  "." -> TokDot
-  "+" -> TokPlus
-  "*" -> TokTimes
-  "-" -> TokMinus
-  ":" -> TokColon
-  "^" -> TokCircumflex
+  ')' -> TokCloseParen
+  '(' -> TokOpenParen
+  ',' -> TokComma
+  ';' -> TokSemicolon
+  '[' -> TokOpenSquareBracket
+  ']' -> TokCloseSquareBracket
+  '{' -> TokOpenAccolade
+  '}' -> TokCloseAccolade
+  '`' -> TokBacktick
+  '|' -> TokPipe
+  '>' -> TokGreaterThan
+  '=' -> TokEqual
+  '.' -> TokDot
+  '+' -> TokPlus
+  '*' -> TokTimes
+  '-' -> TokMinus
+  ':' -> TokColon
+  '^' -> TokCircumflex
+  '#' -> TokHash
 
 scanMany :: LazyByteString -> Either String [RangedToken]
 scanMany input = runAlex input go

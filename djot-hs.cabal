@@ -12,6 +12,8 @@ category:        Parsers
 build-type:      Simple
 extra-doc-files: CHANGELOG.md
 
+tested-with: GHC == 9.4.5
+
 common extensions
   default-extensions:
     NoStarIsType

@@ -81,11 +81,12 @@ data Token
 
 mkL :: TokenType -> AlexInput -> Int64 -> Alex RangedToken
 mkL tokenType (start, _, str, _) len =
-  case tokenType of
-    TokTypeString  -> pure RangedToken{rtToken = String str, rtRange = mkRange start str len}
-    TokTypeInteger -> pure RangedToken{rtToken = Digit str, rtRange = mkRange start str len}
-    TokTypeSpecial -> pure RangedToken{rtToken = mkTokSpecial (BS.head str), rtRange = mkRange start str len}
-    TokTypeEOF      -> alexEOF
+  let string = BS.take len str 
+  in case tokenType of
+        TokTypeString  -> pure RangedToken{rtToken = String string, rtRange = mkRange start str len}
+        TokTypeInteger -> pure RangedToken{rtToken = Digit string, rtRange = mkRange start str len}
+        TokTypeSpecial -> pure RangedToken{rtToken = mkTokSpecial string, rtRange = mkRange start str len}
+        TokTypeEOF      -> alexEOF
 
 mkRange :: AlexPosn -> LazyByteString -> Int64 -> Range
 mkRange start str len = Range{start, stop}
@@ -93,27 +94,27 @@ mkRange start str len = Range{start, stop}
     stop :: AlexPosn
     stop = BS.foldl' alexMove start $ BS.take len str
 
-mkTokSpecial :: Char -> Token
+mkTokSpecial :: LazyByteString -> Token
 mkTokSpecial = \case
-  ')' -> TokCloseParen
-  '(' -> TokOpenParen
-  ',' -> TokComma
-  ';' -> TokSemicolon
-  '[' -> TokOpenSquareBracket
-  ']' -> TokCloseSquareBracket
-  '{' -> TokOpenAccolade
-  '}' -> TokCloseAccolade
-  '`' -> TokBacktick
-  '|' -> TokPipe
-  '>' -> TokGreaterThan
-  '=' -> TokEqual
-  '.' -> TokDot
-  '+' -> TokPlus
-  '*' -> TokTimes
-  '-' -> TokMinus
-  ':' -> TokColon
-  '^' -> TokCircumflex
-  '#' -> TokHash
+  ")" -> TokCloseParen
+  "(" -> TokOpenParen
+  "," -> TokComma
+  ";" -> TokSemicolon
+  "[" -> TokOpenSquareBracket
+  "]" -> TokCloseSquareBracket
+  "{" -> TokOpenAccolade
+  "}" -> TokCloseAccolade
+  "`" -> TokBacktick
+  "|" -> TokPipe
+  ">" -> TokGreaterThan
+  "=" -> TokEqual
+  "." -> TokDot
+  "+" -> TokPlus
+  "*" -> TokTimes
+  "-" -> TokMinus
+  ":" -> TokColon
+  "^" -> TokCircumflex
+  "#" -> TokHash
 
 scanMany :: LazyByteString -> Either String [RangedToken]
 scanMany input = runAlex input go

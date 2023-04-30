@@ -11,8 +11,7 @@ maintainer:      hecate+github@glitchbra.in
 category:        Parsers
 build-type:      Simple
 extra-doc-files: CHANGELOG.md
-
-tested-with: GHC == 9.4.5
+tested-with:     GHC ==9.4.5
 
 common extensions
   default-extensions:
@@ -52,7 +51,6 @@ library
   exposed-modules:
     Djot.AST
     Djot.Lexer
-    MyLib
 
   build-tool-depends: alex:alex ^>=3.2
   build-depends:
